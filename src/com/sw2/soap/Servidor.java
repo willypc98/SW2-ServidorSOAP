@@ -19,14 +19,28 @@ public class Servidor {
 
 Marca marca = new Marca();
 	
+/*
     private String sCarpAct = System.getProperty("user.dir");
+    
+    private String ruta2 = System.getProperty("user.home");
+    
 	private File carpeta = new File(sCarpAct);
 	private String ruta = carpeta.getPath();
-	
+	*/
+	private String directorio= null;
 	
 	@WebMethod(operationName = "hello")
 	public String hello(@WebParam(name = "name") String txt) {
 	return "Hello " + txt + " !";
+	}
+	
+	private void crearCarpetaDeTrabajo(){
+		
+		String directorio = System.getProperty("user.home");
+		File carpeta = new File(directorio + "/Servidor");
+		carpeta.mkdir();
+		this.directorio=carpeta.getAbsolutePath();
+		
 	}
 	
 	private Marca marshallerMarca(String nombreMarca, Producto producto) throws JAXBException {
@@ -44,8 +58,8 @@ Marca marca = new Marca();
 		JAXBContext context = JAXBContext.newInstance(Marca.class);
 		Marshaller m = context.createMarshaller();
 		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,Boolean.TRUE);
-
-		File XMLfile = new File(ruta + "files/xml/" + nombreMarca + ".xml");
+		
+		File XMLfile = new File(directorio + "/"+ nombreMarca + ".xml");
 		m.marshal(marca, XMLfile);
 		return marca;
 	}
@@ -57,8 +71,8 @@ private Marca unmarshallerMarca(String nombreMarca) throws JAXBException {
 		//Hacemos el Unmarshalling
 		JAXBContext context = JAXBContext.newInstance(Marca.class);
 		Unmarshaller u = context.createUnmarshaller();
-
-		File XMLfile = new File(ruta + "files/xml/" + nombreMarca + ".xml");
+		
+		File XMLfile = new File( directorio + "/" + nombreMarca + ".xml");
 
 		marca = (Marca) u.unmarshal(XMLfile);
 		return marca;
@@ -68,7 +82,13 @@ private Marca unmarshallerMarca(String nombreMarca) throws JAXBException {
 	@WebMethod(operationName = "crearMarca")
 	public Marca crearMarca(@WebParam(name = "nombreMarca") String nombreMarca) throws JAXBException {
 		
+		if(directorio==null)
+		{
+			crearCarpetaDeTrabajo();
+		}
+			
 		Producto producto = null;
+		
 		
 		return marshallerMarca(nombreMarca,producto);
 		
