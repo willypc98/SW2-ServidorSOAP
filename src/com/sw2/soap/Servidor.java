@@ -13,6 +13,7 @@ import javax.xml.bind.Unmarshaller;
 import pojos.Marca;
 import pojos.Producto;
 
+
 @WebService(serviceName = "MarcaService")
 public class Servidor {
 
@@ -97,6 +98,10 @@ private Marca unmarshallerMarca(String nombreMarca) throws JAXBException {
 	@WebMethod(operationName = "crearProducto")
 	public Marca crearProducto(@WebParam(name = "nombreMarca") String nombreMarca,@WebParam(name = "nombreProducto") Producto producto) throws JAXBException{
 		
+		if(directorio==null)
+		{
+			crearCarpetaDeTrabajo();
+		}
 		return marshallerMarca(nombreMarca,producto);
 	}
 	
@@ -104,7 +109,10 @@ private Marca unmarshallerMarca(String nombreMarca) throws JAXBException {
 	@WebMethod(operationName = "devolverMarca")
 	public Marca devolverMarca(String nombreMarca) throws JAXBException {
 		
-		
+		if(directorio==null)
+		{
+			crearCarpetaDeTrabajo();
+		}
 		
 		return unmarshallerMarca(nombreMarca);
 		
@@ -112,8 +120,43 @@ private Marca unmarshallerMarca(String nombreMarca) throws JAXBException {
 	
 	@WebMethod(operationName = "devolverProducto")
 	public Producto devolverProducto(@WebParam(name = "nombreMarca") String nombreMarca,@WebParam(name = "nombreProducto") String nombreProducto) throws JAXBException{
+		
+		if(directorio==null)
+		{
+			crearCarpetaDeTrabajo();
+		}
 		Marca marca= devolverMarca(nombreMarca);
 		Producto producto= marca.getProducto(nombreProducto);
 		return producto;
 	}
+	
+	@WebMethod(operationName = "exportarMarca")
+	public void exportarMarca(@WebParam(name = "nombreMarca") String nombreMarca) throws JAXBException {
+		Marca marca = devolverMarca(nombreMarca);
+       
+        JAXBContext context = JAXBContext.newInstance(Marca.class);
+        Marshaller m = context.createMarshaller();
+        m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,Boolean.TRUE); 
+        
+        String directorioCliente = System.getProperty("user.home");
+        
+        File XMLfile = new File(directorioCliente + "/Cliente");
+        m.marshal(marca, XMLfile);
+        
+    }
+	
+	@WebMethod(operationName = "exportarProducto")
+	public void exportarProducto(@WebParam(name = "nombreMarca") String nombreMarca, @WebParam(name = "nombreProducto") String nombreProducto) throws JAXBException {
+		Producto producto = devolverProducto(nombreMarca,nombreProducto);
+       
+        JAXBContext context = JAXBContext.newInstance(Producto.class);
+        Marshaller m = context.createMarshaller();
+        m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,Boolean.TRUE); 
+        
+        String directorioCliente = System.getProperty("user.home");
+        
+        File XMLfile = new File(directorioCliente + "/Cliente");
+        m.marshal(producto, XMLfile);
+        
+    }
 }
