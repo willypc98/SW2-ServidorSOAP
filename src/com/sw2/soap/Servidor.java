@@ -29,6 +29,7 @@ Marca marca = new Marca();
 	private String ruta = carpeta.getPath();
 	*/
 	private String directorio= null;
+	private String directorioCliente= null;
 	
 	@WebMethod(operationName = "hello")
 	public String hello(@WebParam(name = "name") String txt) {
@@ -38,10 +39,13 @@ Marca marca = new Marca();
 	private void crearCarpetaDeTrabajo(){
 		
 		String directorio = System.getProperty("user.home");
+		String directorioCliente = System.getProperty("user.home");
 		File carpeta = new File(directorio + "/Servidor");
 		carpeta.mkdir();
+		File carpeta2 = new File(directorio + "/Cliente");
+		carpeta2.mkdir();
 		this.directorio=carpeta.getAbsolutePath();
-		
+		this.directorioCliente=carpeta2.getAbsolutePath();
 	}
 	
 	private Marca marshallerMarca(String nombreMarca, Producto producto) throws JAXBException {
@@ -132,31 +136,86 @@ private Marca unmarshallerMarca(String nombreMarca) throws JAXBException {
 	
 	@WebMethod(operationName = "exportarMarca")
 	public void exportarMarca(@WebParam(name = "nombreMarca") String nombreMarca) throws JAXBException {
+		
+		if(directorio==null)
+		{
+			crearCarpetaDeTrabajo();
+		}
+		
 		Marca marca = devolverMarca(nombreMarca);
        
+		
         JAXBContext context = JAXBContext.newInstance(Marca.class);
         Marshaller m = context.createMarshaller();
         m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,Boolean.TRUE); 
-        
-        String directorioCliente = System.getProperty("user.home");
-        
-        File XMLfile = new File(directorioCliente + "/Cliente");
+        File XMLfile = new File(directorioCliente + "/" + nombreMarca + ".xml");
         m.marshal(marca, XMLfile);
         
     }
 	
 	@WebMethod(operationName = "exportarProducto")
 	public void exportarProducto(@WebParam(name = "nombreMarca") String nombreMarca, @WebParam(name = "nombreProducto") String nombreProducto) throws JAXBException {
+		
+		if(directorio==null)
+		{
+			crearCarpetaDeTrabajo();
+		}
+		
 		Producto producto = devolverProducto(nombreMarca,nombreProducto);
        
         JAXBContext context = JAXBContext.newInstance(Producto.class);
         Marshaller m = context.createMarshaller();
         m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,Boolean.TRUE); 
-        
-        String directorioCliente = System.getProperty("user.home");
-        
-        File XMLfile = new File(directorioCliente + "/Cliente");
+        File XMLfile = new File(directorioCliente + "/" + nombreProducto + ".xml");
         m.marshal(producto, XMLfile);
         
+    }
+	
+	@WebMethod(operationName = "importarMarca")
+    public void importarMarca(@WebParam(name = "nombreMarca") String nombreMarca) throws JAXBException {
+    	
+
+		if(directorio==null)
+		{
+			crearCarpetaDeTrabajo();
+		}
+		
+		
+		JAXBContext context = JAXBContext.newInstance(Marca.class);
+    	Unmarshaller u = context.createUnmarshaller();
+    	File fichero = new File(directorioCliente + "/" + nombreMarca + ".xml" );
+        Marca marca= (Marca) u.unmarshal(fichero);
+        
+    	JAXBContext context2 = JAXBContext.newInstance(Marca.class); 
+        Marshaller m = context2.createMarshaller();
+        m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,Boolean.TRUE);
+        
+        File XMLfile = new File(directorio + "/" + nombreMarca + ".xml" );
+        m.marshal(marca, XMLfile);
+    }
+	
+	@WebMethod(operationName = "importarProducto")
+    public void importarProducto(@WebParam(name = "nombreProducto") String nombreProducto) throws JAXBException {
+    	
+
+		if(directorio==null)
+		{
+			crearCarpetaDeTrabajo();
+		}
+		
+		
+		JAXBContext context = JAXBContext.newInstance(Producto.class);
+    	Unmarshaller u = context.createUnmarshaller();
+    	File fichero = new File(directorioCliente + "/" + nombreProducto + ".xml" );
+        Producto producto= (Producto) u.unmarshal(fichero);
+        Marca marca = new Marca();
+        marca.addProducto(producto);
+        
+    	JAXBContext context2 = JAXBContext.newInstance(Marca.class); 
+        Marshaller m = context2.createMarshaller();
+        m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,Boolean.TRUE);
+        
+        File XMLfile = new File(directorio + "/" + nombreProducto + ".xml" );
+        m.marshal(marca, XMLfile);
     }
 }
